@@ -27,3 +27,7 @@
   - name: Fail if the "Hello RHLS" is not in the page
     fail:
     when: '"Hello RHLS!" not in webpage.content'
+
+  - debug: 
+      msg: "Success the Podman Lab"
+    

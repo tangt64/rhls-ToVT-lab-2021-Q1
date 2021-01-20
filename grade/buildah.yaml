@@ -1,0 +1,33 @@
+- hosts: 127.0.0.1
+  connection: local
+  tasks:
+  - name: check to the /srv/html directory
+    stat:
+      path: /srv/html
+    register: directory_detail
+
+  - name: fail the directory is not exists
+    fail:
+      msg: "/srv/html directory need"
+    failed_when: directory_detail.stat.exists == False
+
+  - name: try to build a container image by Buildah
+    command: ../lighttpd.sh
+
+  - name: verify the image build correctly; create and run a container service
+    command: podman run -d --name buildah-rhls-centos-httpd -p 8081:80 -v /srv/html:/var/www/html localhost/root/rhls-centos-httpd
+    ignore_errors: yes
+
+  - name: the index.html has "Hello RHLS!"
+    uri:
+      url: http://localhost:8080/index.html
+      return_content: yes
+    register: webpage
+
+  - name: Fail if the "Hello RHLS" is not in the page
+    fail:
+    when: '"Hello RHLS!" not in webpage.content'
+
+  - debug: 
+      msg: "Success the Podman Lab"
+
