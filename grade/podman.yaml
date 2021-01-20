@@ -1,6 +1,29 @@
----
-- name: try to build a container image by Dockerfile
-  command: podman build -t grade/session:v1.0
+- hosts: 127.0.0.1
+  connection: local
+  tasks:
+  - name: check to the /srv/html directory
+    stat:
+      path: /srv/html
+    register: directory_detail
 
-- name: 
+  - name: fail the directory is not exists
+    fail:
+      msg: "/srv/html directory need"
+    failed_when: directory_detail.stat.exists == False
 
+  - name: try to build a container image by Dockerfile
+    command: podman build -t grade/session:v1.0 ../
+
+  - name: verify the image build correctly; create and run a container service
+    command: podman run -d --name rhls-centos-httpd -p 8080:80 -v /srv/html:/var/www/html grade/session:v1.0
+    ignore_errors: yes
+
+  - name: the index.html has "Hello RHLS!"
+    uri:
+      url: http://localhost:8080/index.html
+      return_content: yes
+    register: webpage
+
+  - name: Fail if the "Hello RHLS" is not in the page
+    fail:
+    when: '"Hello RHLS!" not in webpage.content'
