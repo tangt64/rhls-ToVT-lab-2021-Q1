@@ -1,0 +1,6 @@
+---
+- name: try to build a container image by Dockerfile
+  command: podman build -t grade/session:v1.0
+
+- name: 
+
